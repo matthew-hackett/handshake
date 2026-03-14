@@ -53,6 +53,7 @@ wss.on("connection", (socket) => {
     connections.set(id, socket);
 
     socket.on("message", (raw) => {
+        console.log(raw);
         let msg;
 
         try {
