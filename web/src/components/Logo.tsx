@@ -2,8 +2,11 @@ import "./Logo.css";
 
 export default function Logo() {
     return (
-        <img src = "./logo.svg" className="logo floating">
-        </img>
+        <div className='floating'>
+            <img src = "./logo.svg" className="logo floating2">
+            </img>
+        </div>
+        
     )
     
 }
