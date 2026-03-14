@@ -1,4 +1,4 @@
-import type {PacketData} from "../domain/connect.ts";
+import type {HandshakeData} from "../domain/connect.ts";
 
 export type Sample = {
     time: number
@@ -7,14 +7,10 @@ export type Sample = {
 
 export type Snippet = Sample[]
 
-export function snippetToPacketData(s: Snippet): PacketData {
+export function snippetToPacketData(s: Snippet): HandshakeData {
     const mags = s.map(sample => sample.magnitude);
     return {
-        "x": [],
-        "y": [],
-        "z": [],
-        "mag": mags,
-        "id": ""
+        mag: mags,
     }
 }
 
