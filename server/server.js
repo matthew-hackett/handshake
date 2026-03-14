@@ -45,6 +45,7 @@ server.on("connection", (socket) => {
     connections.set(id, socket);
 
     socket.on("message", (raw) => {
+        console.log(raw);
         let msg;
         try {
             msg = JSON.parse(raw);
