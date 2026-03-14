@@ -6,39 +6,39 @@
 }
 
 .floating {
-            position: relative;
-            animation: float 5s ease-in-out infinite;
-        }
+    position: relative;
+    animation: float 5s ease-in-out infinite;
+}
 
 .floating2 {
-            position: relative;
-            animation: float2 3s ease-in-out infinite;
-        }
+    position: relative;
+    animation: float2 3s ease-in-out infinite;
+}
 
-        @keyframes float {
-            0% {
-                transform: translateY(0);
-            }
+@keyframes float {
+    0% {
+        transform: translateY(0);
+    }
 
-            50% {
-                transform: translateY(5px);
-            }
+    50% {
+        transform: translateY(8px);
+    }
 
-            100% {
-                transform: translateY(0);
-            }
-        }
+    100% {
+        transform: translateY(0);
+    }
+}
 
-        @keyframes float2 {
-            0% {
-                transform: rotate(2deg);
-            }
+@keyframes float2 {
+    0% {
+        transform: rotate(2deg);
+    }
 
-            50% {
-                transform: rotate(-2deg);
-            }
+    50% {
+        transform: rotate(-2deg);
+    }
 
-            100% {
-                transform: rotate(2deg);
-            }
-        }
+    100% {
+        transform: rotate(2deg);
+    }
+}
