@@ -1,42 +1,40 @@
-import type {HandshakeData} from "../domain/connect.ts";
+import type { HandshakeData } from "../domain/connect.ts";
 
 export type Sample = {
     time: number
-    magnitude: number
+    x: number
+    y: number
+    z: number
 }
 
 export type Snippet = Sample[]
 
 export function snippetToPacketData(s: Snippet): HandshakeData {
-    const mags = s.map(sample => sample.magnitude);
     return {
         type: "handshake-data",
-        mag: mags,
+        samples: s.map(({ x, y, z }) => ({ x, y, z })),
     }
 }
 
-
-export function makeSnippetDetector(threshold: number, snippetDuration = 1000, sampleRate = 60) {
+export function makeSnippetDetector(threshold: number, snippetDuration = 1000) {
     let recording = false
     let snippet: Snippet = []
     let startTime = 0
 
     return function processSample(x: number, y: number, z: number): Snippet | null {
         const now = Date.now()
-        const mag = Math.sqrt(x*x + y*y + z*z)
+        const mag = Math.sqrt(x * x + y * y + z * z)
 
         if (!recording && mag > threshold) {
-            // start recording
             recording = true
             snippet = []
             startTime = now
         }
 
         if (recording) {
-            snippet.push({ time: now, magnitude: mag })
+            snippet.push({ time: now, x, y, z })
 
             if (now - startTime >= snippetDuration) {
-                // finish recording
                 recording = false
                 const captured = snippet
                 snippet = []

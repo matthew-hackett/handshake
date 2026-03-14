@@ -1,23 +1,14 @@
 import { useState } from 'react'
 import './App.css'
-import Connected from './components/Connected';
-import Pending from './components/Pending';
-
+import Connected from './components/Connected'
+import Pending from './components/Pending'
 
 function App() {
-  
+    const [channel, setChannel] = useState<RTCDataChannel | null>(null);
 
-  const [connected, setConnected] = useState(false);
-
-
-
-  return (
-    <>
-    {connected ? <Connected/> : <Pending/>}
-    <p>
-    </p>
-    </>
-  )
+    return channel
+        ? <Connected channel={channel} />
+        : <Pending onConnected={setChannel} />;
 }
 
 export default App

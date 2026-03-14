@@ -1,78 +1,101 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { startMotion } from "../logic/motion";
 import { makeSnippetDetector, snippetToPacketData } from "../logic/spike";
-import { sendPacket, connect, type PacketData } from "../domain/connect";
+import { sendPacket, connect } from "../domain/connect";
+import { setupWebRTC } from "../domain/webrtc";
 import { usePacketListener } from "../domain/usePacketListener";
 
-const WS_URL = "https://handshake-iv6dtq.fly.dev";
-//"ws://127.0.0.1:1234";
+const WS_URL = "wss://handshake-iv6dtq.fly.dev";
 
-export default function Pending() {
-    const [enabled, setEnabled] = useState(false);
-    const [connecting, setConnecting] = useState(false);
-    const [text, setText] = useState<string>("");
-    const l = usePacketListener(
-        (v) => {
+type Phase = 'idle' | 'starting' | 'ready' | 'waiting' | 'matched' | 'error';
+
+const STATUS: Record<Phase, string> = {
+    idle: '',
+    starting: 'Starting...',
+    ready: 'Shake your phone to connect!',
+    waiting: 'Looking for a match... shake again if needed',
+    matched: 'Match found! Establishing connection...',
+    error: '',
+};
+
+export default function Pending({ onConnected }: { onConnected: (ch: RTCDataChannel) => void }) {
+    const [phase, setPhase] = useState<Phase>('idle');
+    const [error, setError] = useState('');
+    const phaseRef = useRef<Phase>('idle');
+
+    const updatePhase = (p: Phase) => {
+        phaseRef.current = p;
+        setPhase(p);
+    };
+
+    usePacketListener(async (msg: any) => {
+        if (msg.type === 'waiting' && phaseRef.current === 'ready') {
+            updatePhase('waiting');
+        } else if (msg.type === 'match-success') {
+            updatePhase('matched');
             try {
-                let t = JSON.stringify(v);
-                setText(t);
-            } catch {
-                setText("Error parsing");
+                const channel = await setupWebRTC(msg.role);
+                onConnected(channel);
+            } catch (err) {
+                setError(String(err));
+                updatePhase('error');
             }
         }
-    );
+    });
 
     const handleStart = async () => {
-        setConnecting(true);
+        updatePhase('starting');
         try {
-            // Request motion permission FIRST — must be synchronous from user gesture
             const DME = DeviceMotionEvent as any;
             if (typeof DME.requestPermission === "function") {
                 const permission = await DME.requestPermission();
                 if (permission !== "granted") {
-                    alert("Motion permission denied");
-                    setConnecting(false);
+                    setError("Motion permission denied");
+                    updatePhase('error');
                     return;
                 }
             }
 
-            // Now do async work after permission is granted
             await connect(WS_URL);
 
-            const snippetDetector = makeSnippetDetector(12);
+            const detector = makeSnippetDetector(12);
             await startMotion(({ x, y, z }) => {
-                const snippet = snippetDetector(x, y, z);
-                if (snippet) {
-                    const packet: PacketData = snippetToPacketData(snippet);
-                    sendPacket(packet);
+                const snippet = detector(x, y, z);
+                if (snippet && phaseRef.current !== 'matched') {
+                    sendPacket(snippetToPacketData(snippet));
+                    if (phaseRef.current === 'ready') updatePhase('waiting');
                 }
             });
-            setEnabled(true);
+
+            updatePhase('ready');
         } catch (err) {
-            const msg = [
-                "type: " + typeof err,
-                "constructor: " + (err as any)?.constructor?.name,
-                "message: " + (err as any)?.message,
-                "raw: " + String(err),
-            ].join("\n");
-            alert(msg);
-        } finally {
-            setConnecting(false);
+            setError(String(err));
+            updatePhase('error');
         }
     };
 
+    const canStart = phase === 'idle' || phase === 'error';
+
     return (
-        <div>
-            <button onClick={handleStart} disabled={enabled || connecting}>
-                {enabled
-                    ? "Motion Enabled"
-                    : connecting
-                        ? "Connecting..."
-                        : "Start the Motion"}
-            </button>
-            <h1>
-                {text}
-            </h1>
+        <div className="page pending-page">
+            <div className="pending-content">
+                <h1 className="app-title">Handshake</h1>
+                <p className="app-subtitle">Shake two phones together to share files</p>
+
+                <button className="primary-btn" onClick={handleStart} disabled={!canStart}>
+                    {canStart ? 'Start' : 'Started'}
+                </button>
+
+                {phase !== 'idle' && (
+                    <p className={`status-msg ${phase === 'error' ? 'status-error' : ''}`}>
+                        {phase === 'error' ? error : STATUS[phase]}
+                    </p>
+                )}
+
+                {phase === 'ready' && (
+                    <div className="shake-indicator" />
+                )}
+            </div>
         </div>
     );
 }
