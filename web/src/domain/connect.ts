@@ -1,5 +1,11 @@
 
-export type PacketData = {};
+export type PacketData = {
+    "mag":  number[],
+    "x": number[],
+    "y": number[],
+    "z": number[],
+    "id": string
+};
 let socket: WebSocket | null = null;
 export type PacketHandler = (data: PacketData) => void;
 const listeners = new Set<PacketHandler>();
