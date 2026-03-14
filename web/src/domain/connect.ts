@@ -1,10 +1,16 @@
-export type PacketData = {
+export type PacketData = ICECandidacy | STPAnswer | HandshakeData
+
+export type ICECandidacy = {
+    address: string;
+}
+
+export type STPAnswer = {
+    address: string;
+}
+
+export type HandshakeData = {
     mag: number[];
-    x: number[];
-    y: number[];
-    z: number[];
-    id: string;
-};
+}
 
 
 export type PacketHandler = (data: PacketData) => void;
