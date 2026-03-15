@@ -1,3 +1,5 @@
+import {isMobile} from 'react-device-detect';
+
 export default function Start({ onStart }: { onStart: () => void }) {
     return (
         <div className="start-section">
@@ -16,9 +18,19 @@ export default function Start({ onStart }: { onStart: () => void }) {
                     Share files instantly
                 </li>
             </ol>
-            <button className="start-btn" onClick={onStart}>
-                Start
+            {
+
+                isMobile ?
+                <button className="start-btn" onClick={onStart}>
+                    Start
             </button>
+                :
+
+                <button className="start-btn">
+                    Requires a mobile device!
+            </button>
+            }
+            
         </div>
     );
 }
